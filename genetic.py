@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import math
 import copy
 
+from IPython.display import clear_output, display
+
 
 class Points:
     def __init__(self, grid=(100, 100), size=10):
@@ -117,7 +119,7 @@ class Population:
     def __init__(self,
                  points: list,
                  mutation: float = 0.3,
-                 population_size: int = 100):
+                 population_size: int = 500):
         """
         :param points: list where each element represents (x, y) coordinates
         :param mutation: chance of path to mutate
@@ -147,7 +149,7 @@ class Population:
         return np.array(population)
 
 
-    def selection(self, survival_size=0.5):
+    def selection(self, survival_size=0.5, weight=np.e):
         """
         Selection is done in place
         :param survival_size: percent of population that survives
@@ -159,7 +161,7 @@ class Population:
         )
 
         bias_weights = np.array(list(reversed(
-            [(x / self.ARGS["size"])**np.e for x in range(self.ARGS["size"])]
+            [(x / self.ARGS["size"])**weight for x in range(self.ARGS["size"])]
         )))
         # normalization so probabilities add up to 1
         probabilities = bias_weights / np.sum(bias_weights)
@@ -181,7 +183,7 @@ class Population:
     def mutate(self, chance=0.35):
         """
         Mutation is done in place.
-        :param mutation_chance: the chance that a mutation occurs in the path
+        :param chance: the chance that a mutation occurs in the path
         - mutation chance works best at ~0.3, due to only a single
         swap of element position
         """
@@ -208,7 +210,7 @@ class Population:
             self.population.append(Route(points=child_points, shuffle=False))
 
 
-    def plot(self, i, animate=True):
+    def plot(self, i, animate=False, jupyter=False):
         """
         Plots the points and the fittest path for current generation
         :param i: iteration; used for on screen graphs
@@ -226,8 +228,8 @@ class Population:
         fig, [ax1, ax2] = plt.subplots(1, 2, figsize=(10, 5))
         fig.tight_layout(pad=2)
 
-        ax1.set_title("Fittest of the Population", fontsize=14)
-        ax2.set_title("Fittest of the Generation {}".format(i), fontsize=14)
+        ax1.set_title("All time fittest", fontsize=14)
+        ax2.set_title("Fittest of Generation {}".format(i), fontsize=14)
 
         # ensure last point is included in path (full circle)
         ax1_path_list = list(zip(*np.vstack(
@@ -253,6 +255,9 @@ class Population:
             plt.draw()
             plt.pause(0.001)
             plt.close()
+        elif jupyter:
+            plt.show()
+            clear_output(wait=True)
         else:
             # goes forward by clicking
             plt.show()
@@ -260,6 +265,8 @@ class Population:
 
 
 # -------- testing area --------
+
+np.random.seed(42)
 
 x = np.array(
     [[20, 40],
@@ -271,12 +278,12 @@ x = np.array(
     [40, 80],
     [20, 60]])
 
-city = Points(grid=(100, 100), size=10)
+city = Points(grid=(100, 100), size=15)
 
 routes = Population(city.points)
 
-for i in range(200):
+for i in range(2000):
     routes.selection()
     routes.crossover()
-    routes.mutate(chance=0.35)
+    routes.mutate(chance=0.4)
     routes.plot(i, animate=True)
