@@ -287,3 +287,5 @@ for i in range(2000):
     routes.crossover()
     routes.mutate(chance=0.4)
     routes.plot(i, animate=True)
+
+# settings to use for good results: 15-0.4, 20-0.4, 30-0.45
