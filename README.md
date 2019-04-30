@@ -1,7 +1,7 @@
 # Genetic Algorithm applied to the Traveling Salesman Problem
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/karipov/genetic-salesman/master?filepath=paper.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/karipov/genetic-salesman/master?filepath=paper.ipynb) ![GitHub](https://img.shields.io/github/license/karipov/genetic-salesman.svg)
 
-![Evolution](demo/Evolution.png)
+![Evolution](demo/png/Evolution.png)
 
 `paper.ipynb` notebook has all the explanations regarding Genetic Algorithms and how they are used to solve the Traveling Salesman Problem.
 
