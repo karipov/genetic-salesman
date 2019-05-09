@@ -7,8 +7,14 @@ from IPython.display import clear_output, display
 
 
 class Points:
+    """
+    Member class of the evolutionary algorithm.
+    Made to encompass aspects of a 2D array of points.
+    """
     def __init__(self, grid=(100, 100), size=10):
         """
+        Creates a Points object.
+
         :param grid: tuple that defines the map size
         :paran size: number of points to be generated
         """
@@ -22,6 +28,8 @@ class Points:
 
     def _generate_2d_points(self, x, y):
         """
+        Glorified zip function for copied numpy arrays.
+
         :param x: all the x coordinates
         :param y: all the y cooridnates
         :return: 2D list with each element representing (x, y) coordinate
@@ -32,11 +40,18 @@ class Points:
 
 
 class Route:
+    """
+    Class that encompasses all aspects of a Route, such as it's points,
+    and distance, as well as ability to mutate and combine multiple
+    instances to form a new Route object.
+    """
     def __init__(self,
                  points: list,
                  shuffle: bool = True,
                  ):
         """
+        Initializes a Route object.
+
         :param points: list where each element represents (x, y) coordinate
         :param random: whether points are supplied or should be generated
         randomly
@@ -51,11 +66,18 @@ class Route:
 
 
     def __repr__(self) -> str:
+        """
+        Representation of a Route object.
+        """
         return "Route obj. - dist.: ~{:0.2f}\n".format(self.distance)
 
 
     def _define_path(self, points: list) -> list:
         """
+        Creates a list of interconnected points that comprise a path.
+        This is needed for significantly easier Euclidean Distance calculation
+        for a shape with many lines.
+
         :param points: list of points with each element as (x, y) of coordinate
         :return: 3D list of connected points.
         """
@@ -68,6 +90,8 @@ class Route:
 
     def _calc_distance(self, path: list) -> float:
         """
+        Calculates the eucildean distance of a shape represented as a path.
+
         :param path: 3D list  (2, 2, x) of connected points
         :return: float, indicates the total Euclidean distance between
         all the points in the path
@@ -82,7 +106,8 @@ class Route:
 
     def mutate(self):
         """
-        Mutation is done in place.
+        Mutation is done in place and is applied randomly
+        on the entire population.
         """
         i1 = np.random.randint(0, len(self.points))
         i2 = np.random.randint(0, len(self.points))
@@ -97,8 +122,10 @@ class Route:
     @staticmethod
     def crossover(a, b):
         """
-        Adapted from https://stackoverflow.com/a/55426480/8814732 (Paul Panzer)
-        Both arrays must have a full intersection (all elements are the same)
+        Non-stnadard crossover that preserves the number of unique
+        elements in an array. Both arrays must have a full intersection.
+        Adapted: https://stackoverflow.com/a/55426480/8814732 (Paul Panzer)
+
         :param a: first parent path
         :param b: second parent path
         :return: child path
@@ -116,11 +143,18 @@ class Route:
 
 
 class Population:
+    """
+    Evolutionary elements are mainly simulated here. This class is
+    what makes the program an evolutionary algorithm.
+    """
     def __init__(self,
                  points: list,
                  mutation: float = 0.3,
                  population_size: int = 500):
         """
+        Creates a Population object consisiting of Routes and methods
+        to simulate evolution.
+
         :param points: list where each element represents (x, y) coordinates
         :param mutation: chance of path to mutate
         :param population_size: number of paths to have in a population
@@ -142,6 +176,7 @@ class Population:
     def _initial_population(self):
         """
         Creates an initial population made of Routes
+
         :return: list of Route objects
         """
         population = [Route(self.points) for _ in range(self.ARGS["size"])]
@@ -149,12 +184,15 @@ class Population:
         return np.array(population)
 
 
-    def selection(self, survival_size=0.5, weight=np.e):
+    def selection(self, survival_size: float = 0.5, weight=np.e):
         """
-        Selection is done in place
-        :param survival_size: percent of population that survives
+        Selection is done in place.
         - np.e is used as the power for bias weights
         - 50% sample size is hardcoded
+
+        :param survival_size: percent of population that survives
+        :param weight: how much the more fit members are favored
+        over the unfit members
         """
         self.population = np.array(
             sorted(self.population, key=lambda member: member.distance)
@@ -180,12 +218,13 @@ class Population:
             )
 
 
-    def mutate(self, chance=0.35):
+    def mutate(self, chance: float = 0.35):
         """
         Mutation is done in place.
-        :param chance: the chance that a mutation occurs in the path
         - mutation chance works best at ~0.3, due to only a single
         swap of element position
+
+        :param chance: the chance that a mutation occurs in the path
         """
         for i in range(len(self.population)):
             if np.random.random() < chance:
@@ -210,9 +249,10 @@ class Population:
             self.population.append(Route(points=child_points, shuffle=False))
 
 
-    def plot(self, i, animate=False, jupyter=False):
+    def plot(self, i, animate: bool = False, jupyter: bool = False):
         """
-        Plots the points and the fittest path for current generation
+        Plots the points and the fittest path for current generation.
+
         :param i: iteration; used for on screen graphs
         :param animate: whether the plot is updated manually or automatically
         """
@@ -265,27 +305,27 @@ class Population:
 
 
 # -------- testing area --------
+if __name__ == '__main__':
+    np.random.seed(42)
 
-np.random.seed(42)
+    x = np.array(
+        [[20, 40],
+        [40, 20],
+        [60, 20],
+        [80, 40],
+        [80, 60],
+        [60, 80],
+        [40, 80],
+        [20, 60]])
 
-x = np.array(
-    [[20, 40],
-    [40, 20],
-    [60, 20],
-    [80, 40],
-    [80, 60],
-    [60, 80],
-    [40, 80],
-    [20, 60]])
+    city = Points(grid=(100, 100), size=15)
 
-city = Points(grid=(100, 100), size=15)
+    routes = Population(city.points)
 
-routes = Population(city.points)
+    for i in range(2000):
+        routes.selection()
+        routes.crossover()
+        routes.mutate(chance=0.4)
+        routes.plot(i, animate=False)
 
-for i in range(2000):
-    routes.selection()
-    routes.crossover()
-    routes.mutate(chance=0.4)
-    routes.plot(i, animate=True)
-
-# settings to use for good results: 15-0.4, 20-0.4, 30-0.45
+    # settings to use for good results: 15-0.4, 20-0.4, 30-0.45
